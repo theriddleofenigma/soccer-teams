@@ -19,6 +19,8 @@ class PlayerResource extends JsonResource
             'first_name' => $this->first_name,
             'last_name' => $this->last_name,
             'image_url' => $this->profileImageUrl(),
+            'team_id' => $this->team_id,
+            'team_name' => $this->team->name,
         ];
     }
 }

@@ -35,7 +35,9 @@ class PlayerController extends Controller
      */
     public function index(Team $team): AnonymousResourceCollection
     {
-        return PlayerResource::collection($team->players);
+        return PlayerResource::collection(
+            $team->players->map(fn ($player) => $player->setRelation('team', $team))
+        );
     }
 
 
@@ -58,7 +60,7 @@ class PlayerController extends Controller
             ]);
             DB::commit();
 
-            return new PlayerResource($player);
+            return new PlayerResource($player->setRelation('team', $team));
         } catch (Throwable $throwable) {
             DB::rollBack();
             // If profile image has been saved and player is not created, then delete the profile image if exists.
@@ -79,7 +81,7 @@ class PlayerController extends Controller
      */
     public function show(Team $team, Player $player): PlayerResource
     {
-        return new PlayerResource($player);
+        return new PlayerResource($player->setRelation('team', $team));
     }
 
 
@@ -111,7 +113,7 @@ class PlayerController extends Controller
             }
             DB::commit();
 
-            return new PlayerResource($player);
+            return new PlayerResource($player->setRelation('team', $team));
         } catch (Throwable $throwable) {
             DB::rollBack();
             // Delete the new profile image if saved.
