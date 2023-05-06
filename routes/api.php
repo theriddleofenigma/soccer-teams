@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\V1\PlayerController;
 use App\Http\Controllers\Api\V1\TeamController;
 use Illuminate\Support\Facades\Route;
 
@@ -16,4 +17,5 @@ use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
     Route::apiResource('teams', TeamController::class);
+    Route::apiResource('teams.players', PlayerController::class)->scoped();
 });

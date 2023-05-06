@@ -12,7 +12,7 @@ use Illuminate\Support\Str;
  * @param string $location
  * @param array $params
  */
-function logError(Exception $exception, string $message, string $location = '', array $params = []): void
+function logError(Throwable $exception, string $message, string $location = '', array $params = []): void
 {
     simpleErrorLog($exception->getMessage(), $location, $params, $exception->getTraceAsString(), $message);
 }
@@ -40,9 +40,10 @@ function simpleErrorLog(string $errorMessage, string $location, array $params, s
  * Store the uploaded file image to the file storage.
  *
  * @param UploadedFile $file
+ * @param string $path
  * @return string
  */
-function storeImage(UploadedFile $file): string
+function storeImage(UploadedFile $file, string $path): string
 {
-    return $file->storePubliclyAs('logos', Str::ulid() . '.' . $file->extension());
+    return $file->storePubliclyAs($path, Str::ulid() . '.' . $file->extension());
 }

@@ -7,6 +7,9 @@ use App\Http\Requests\StoreTeamRequest;
 use App\Http\Requests\UpdateTeamRequest;
 use App\Http\Resources\TeamResource;
 use App\Models\Team;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Storage;
 use Throwable;
@@ -14,53 +17,71 @@ use Throwable;
 class TeamController extends Controller
 {
     /**
-     * Display a listing of the team resource.
+     * Get all the team resources from the database.
+     *
+     * @return AnonymousResourceCollection
      */
-    public function index()
+    public function index(): AnonymousResourceCollection
     {
         return TeamResource::collection(Team::all());
     }
 
     /**
-     * Store a newly created team resource in storage.
+     * Store a new team resource in database.
+     *
+     * @param StoreTeamRequest $request
+     * @return JsonResponse|TeamResource
      */
-    public function store(StoreTeamRequest $request)
+    public function store(StoreTeamRequest $request): JsonResponse|TeamResource
     {
         try {
+            $logoPath = storeImage($request->file('logo'), 'logos');
             $team = Team::create([
                 'name' => $request->name,
-                'logo_path' => storeImage($request->file('logo')),
+                'logo_path' => $logoPath,
             ]);
 
             return new TeamResource($team);
         } catch (Throwable $throwable) {
             // If logo has been saved and team is not created, then delete the logo if exists.
-            if (!empty($logoPath) and empty($team) && Storage::exists($logoPath)) {
+            if (!empty($logoPath) && empty($team) && Storage::exists($logoPath)) {
                 Storage::delete($logoPath);
             }
-            logError($throwable, 'Error while storing the team details.', 'TeamController@store', $request->all());
+            logError($throwable, 'Error while storing the team details.', 'TeamController@store', [
+                'request' =>  $request->all(),
+            ]);
             return Response::json(['message' => 'Error while storing the team details.'], 500);
         }
     }
 
     /**
-     * Display the specified team resource.
+     * Get the team resource from the database.
+     *
+     * @param Team $team
+     * @return TeamResource
      */
-    public function show(Team $team)
+    public function show(Team $team): TeamResource
     {
         return new TeamResource($team);
     }
 
+
     /**
-     * Update the specified team resource in storage.
+     * Update the specified team resource in database.
+     *
+     * @param UpdateTeamRequest $request
+     * @param Team $team
+     * @return JsonResponse|TeamResource
      */
-    public function update(UpdateTeamRequest $request, Team $team)
+    public function update(UpdateTeamRequest $request, Team $team): JsonResponse|TeamResource
     {
+        DB::beginTransaction();
         try {
             # Update logo if available in request.
             $oldLogo = $team->logo_path;
             if ($request->hasFile('logo')) {
-                $team->logo_path = storeImage($request->file('logo'));
+                $newLogo = storeImage($request->file('logo'), 'logos');
+                $team->logo_path = $newLogo;
             }
             $team->name = $request->name;
             $team->save();
@@ -69,29 +90,52 @@ class TeamController extends Controller
             if ($oldLogo !== $team->logo_path) {
                 Storage::delete($oldLogo);
             }
+            DB::commit();
 
             return new TeamResource($team);
         } catch (Throwable $throwable) {
-            // If new logo has been saved, and is different from the current team logo path, then delete the logo if exists.
-            if (!empty($newLogoPath) && $team->logo_path !== $newLogoPath && Storage::exists($newLogoPath)) {
-                Storage::delete($newLogoPath);
+            DB::rollBack();
+            // Delete the new logo if saved.
+            if (!empty($newLogo) && Storage::exists($newLogo)) {
+                Storage::delete($newLogo);
             }
-            logError($throwable, 'Error while updating the team details.', 'TeamController@update', $request->all());
+            logError($throwable, 'Error while updating the team details.', 'TeamController@update', [
+                'team_id' => $team->id,
+                'request' => $request->all(),
+            ]);
             return Response::json(['message' => 'Error while updating the team details.'], 500);
         }
     }
 
     /**
-     * Remove the specified team resource from storage.
+     * Remove the specified team resource from database.
+     *
+     * @param Team $team
+     * @return \Illuminate\Http\Response|JsonResponse
      */
-    public function destroy(Team $team)
+    public function destroy(Team $team): \Illuminate\Http\Response|JsonResponse
     {
-        # Delete the team logo.
-        Storage::delete($team->logo_path);
+        DB::beginTransaction();
+        try {
+            # Prepare the image paths to delete.
+            $imagesToDelete = $team->players()->pluck('profile_image_path')->toArray();
+            $imagesToDelete[] = $team->logo_path;
 
-        # Delete the team.
-        $team->delete();
+            # Delete the players and then the team.
+            $team->players()->delete();
+            $team->delete();
 
-        return Response::noContent();
+            # Delete the images.
+            Storage::delete($imagesToDelete);
+            DB::commit();
+
+            return Response::noContent();
+        } catch (Throwable $throwable) {
+            DB::rollBack();
+            logError($throwable, 'Error while deleting the team.', 'TeamController@delete', [
+                'team_id' => $team->id,
+            ]);
+            return Response::json(['message' => 'Error while deleting the team.'], 500);
+        }
     }
 }
