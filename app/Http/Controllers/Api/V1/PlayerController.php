@@ -16,6 +16,16 @@ use Throwable;
 
 class PlayerController extends Controller
 {
+    /**
+     * Instantiate a new controller instance.
+     */
+    public function __construct()
+    {
+        $this->middleware([
+            'auth:sanctum',
+            'admin'
+        ])->only(['store', 'update', 'delete']);
+    }
 
     /**
      * Get all the player resources under the specified team from the database.

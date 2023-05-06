@@ -17,6 +17,17 @@ use Throwable;
 class TeamController extends Controller
 {
     /**
+     * Instantiate a new controller instance.
+     */
+    public function __construct()
+    {
+        $this->middleware([
+            'auth:sanctum',
+            'admin',
+        ])->only(['store', 'update', 'delete']);
+    }
+
+    /**
      * Get all the team resources from the database.
      *
      * @return AnonymousResourceCollection
@@ -48,7 +59,7 @@ class TeamController extends Controller
                 Storage::delete($logoPath);
             }
             logError($throwable, 'Error while storing the team details.', 'TeamController@store', [
-                'request' =>  $request->all(),
+                'request' => $request->all(),
             ]);
             return Response::json(['message' => 'Error while storing the team details.'], 500);
         }
