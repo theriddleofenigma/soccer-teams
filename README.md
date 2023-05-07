@@ -1,66 +1,94 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Soccer Teams
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+An application to manage soccer teams and its players.
 
-## About Laravel
+## Requirements
+- PHP v8.0 or Higher. (Developed using PHP v8.1)
+- MySQL (5.7 or 8)/Postgres (11 or Higher)/Sqlite
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Installation and Setup
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+- Clone this repository to your local.
+- Run `composer install` on the root directory to install the composer packages.
+- Copy and paste the **.env.example** file into **.env** in the root directory.
+- Run `php artisan key:generate` to set the application key in the **.env** file.
+- Set all the necessary environment variables in the **.env** file.
+- Run `php artisan migrate` to create database (if required) and to execute the migration files.
+- To create admin user, either run `php artisan db:seed` or `php artisan user:add`.
+- For `php artisan db:seed`, open `database/seeders/DatabaseSeeder.php` and uncomment the user creation script then run `php artisan db:seed`.
+- On running `php artisan user:add`, you can set the user as admin by confirming on the prompt asked on executing the command.
+- Run `php artisan route:list` to see all the available routes. Else refer to [API Route List](#available-route-list) in the **README.md** file.
+- Run `php artisan serve` to start the server.
+- Now visit `http://127.0.0.1:8000` in the browser and see {"message":"success"} json to confirm server started properly.
+- For postman collection please use the following link to import. 
+```
+https://api.postman.com/collections/13323251-cfb6f90e-20a8-4ed1-a776-c136934c3c10?access_key=PMAT-01GZVA67KPQPDZS67A631NAK2J
+```
+- Use the Create Team, Create Player routes to add new teams and players.
+- To update use Update Team and Update Player routes.
+- To delete use Delete Team and Delete Player routes.
+- Once added, to list the teams and players visit Get Teams and Get Players API respectively.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## Testing
 
-## Learning Laravel
+- Once cloned and setup is done.
+- Open terminal on the project root directory in your local and run `php artisan test` command.
+- Once executed it will list all the test class name along with the executed test case and status in detail.
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+## Available API Route list
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+#### Login
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains over 2000 video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+POST `api/v1/login`
 
-## Laravel Sponsors
+#### Get all Teams
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the Laravel [Patreon page](https://patreon.com/taylorotwell).
+GET|HEAD `api/v1/teams`
 
-### Premium Partners
+#### Create a new Team
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Cubet Techno Labs](https://cubettech.com)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[Many](https://www.many.co.uk)**
-- **[Webdock, Fast VPS Hosting](https://www.webdock.io/en)**
-- **[DevSquad](https://devsquad.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[OP.GG](https://op.gg)**
-- **[WebReinvent](https://webreinvent.com/?utm_source=laravel&utm_medium=github&utm_campaign=patreon-sponsors)**
-- **[Lendio](https://lendio.com)**
+**Header:** `Authorization: Bearer {token}`
 
-## Contributing
+**URI:** POST `api/v1/teams`
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+#### Get specified Team
 
-## Code of Conduct
+**URI:** GET|HEAD `api/v1/teams/{team}`
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+#### Update specified Team
 
-## Security Vulnerabilities
+**Header:** `Authorization: Bearer {token}`
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+**URI:** PUT|PATCH `api/v1/teams/{team}`
 
-## License
+#### Delete specified Team
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+**Header:** `Authorization: Bearer {token}`
+
+**URI:** DELETE `api/v1/teams/{team}`
+
+#### Get all Players on the specified Team
+
+**URI:** GET|HEAD `api/v1/teams/{team}/players`
+
+#### Create a new Player on the specified Team
+
+**Header:** `Authorization: Bearer {token}`
+
+**URI:** POST `api/v1/teams/{team}/players`
+
+#### Get specified Player on the specified Team
+
+**URI:** GET|HEAD `api/v1/teams/{team}/players/{player}`
+
+#### Update specified Player on the specified Team
+
+**Header:** `Authorization: Bearer {token}`
+
+**URI:** PUT|PATCH `api/v1/teams/{team}/players/{player}`
+
+#### Delete specified Player on the specified Team
+
+**Header:** `Authorization: Bearer {token}`
+
+**URI:** DELETE `api/v1/teams/{team}/players/{player}`
