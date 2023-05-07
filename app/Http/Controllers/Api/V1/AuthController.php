@@ -5,7 +5,9 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\LoginRequest;
 use App\Models\User;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Response;
 use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
@@ -29,5 +31,17 @@ class AuthController extends Controller
             'access_token' => $user->createToken('auth_token')->plainTextToken,
             'token_type' => 'Bearer',
         ]);
+    }
+
+    /**
+     * Logout the current user.
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\Response
+     */
+    public function logout(Request $request): \Illuminate\Http\Response
+    {
+        $request->user()->currentAccessToken()->delete();
+        return Response::noContent();
     }
 }

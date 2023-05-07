@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
     Route::post('login', [AuthController::class, 'login']);
+    Route::delete('logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
     Route::apiResource('teams', TeamController::class);
     Route::apiResource('teams.players', PlayerController::class)->scoped();
 });

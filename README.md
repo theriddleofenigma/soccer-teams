@@ -41,6 +41,10 @@ https://api.postman.com/collections/13323251-cfb6f90e-20a8-4ed1-a776-c136934c3c1
 
 POST `api/v1/login`
 
+#### Logout
+
+DELETE `api/v1/logout`
+
 #### Get all Teams
 
 GET|HEAD `api/v1/teams`
