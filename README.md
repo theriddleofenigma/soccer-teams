@@ -3,7 +3,7 @@
 An application to manage soccer teams and its players.
 
 ## Requirements
-- PHP v8.0 or Higher. (Developed using PHP v8.1)
+- PHP v8.1
 - MySQL (5.7 or 8)/Postgres (11 or Higher)/Sqlite
 
 ## Installation and Setup
