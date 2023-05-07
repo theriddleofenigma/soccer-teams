@@ -11,6 +11,8 @@ class Team extends Model
 {
     use HasFactory;
 
+    public const LOGO_PATH = 'logos';
+
     /**
      * The attributes that are mass assignable.
      *

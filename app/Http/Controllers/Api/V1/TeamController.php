@@ -46,7 +46,7 @@ class TeamController extends Controller
     public function store(StoreTeamRequest $request): JsonResponse|TeamResource
     {
         try {
-            $logoPath = storeImage($request->file('logo'), 'logos');
+            $logoPath = storeImage($request->file('logo'), Team::LOGO_PATH);
             $team = Team::create([
                 'name' => $request->name,
                 'logo_path' => $logoPath,
@@ -91,7 +91,7 @@ class TeamController extends Controller
             # Update logo if available in request.
             $oldLogo = $team->logo_path;
             if ($request->hasFile('logo')) {
-                $newLogo = storeImage($request->file('logo'), 'logos');
+                $newLogo = storeImage($request->file('logo'), Team::LOGO_PATH);
                 $team->logo_path = $newLogo;
             }
             $team->name = $request->name;

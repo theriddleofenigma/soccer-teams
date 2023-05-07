@@ -36,7 +36,7 @@ class PlayerController extends Controller
     public function index(Team $team): AnonymousResourceCollection
     {
         return PlayerResource::collection(
-            $team->players->map(fn ($player) => $player->setRelation('team', $team))
+            $team->players->map(fn($player) => $player->setRelation('team', $team))
         );
     }
 
@@ -52,7 +52,7 @@ class PlayerController extends Controller
     {
         DB::beginTransaction();
         try {
-            $profileImagePath = storeImage($request->file('profile_image'), 'profile_images');
+            $profileImagePath = storeImage($request->file('profile_image'), Player::PROFILE_IMAGE_PATH);
             $player = $team->players()->create([
                 'first_name' => $request->first_name,
                 'last_name' => $request->last_name,
@@ -100,7 +100,7 @@ class PlayerController extends Controller
             # Update profile image if available in request.
             $oldProfileImagePath = $player->profile_image_path;
             if ($request->hasFile('profile_image')) {
-                $newProfileImagePath = storeImage($request->file('profile_image'), 'profile_images');
+                $newProfileImagePath = storeImage($request->file('profile_image'), Player::PROFILE_IMAGE_PATH);
                 $player->profile_image_path = $newProfileImagePath;
             }
             $player->first_name = $request->first_name;

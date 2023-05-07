@@ -11,6 +11,8 @@ class Player extends Model
 {
     use HasFactory;
 
+    public const PROFILE_IMAGE_PATH = 'profile_images';
+
     /**
      * The attributes that are mass assignable.
      *

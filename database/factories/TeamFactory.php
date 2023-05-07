@@ -2,7 +2,9 @@
 
 namespace Database\Factories;
 
+use App\Models\Team;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Http\UploadedFile;
 
 /**
  * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Team>
@@ -16,9 +18,10 @@ class TeamFactory extends Factory
      */
     public function definition(): array
     {
+        $logoPath = storeImage(UploadedFile::fake()->image(fake()->name() . '.jpg'), Team::LOGO_PATH);
         return [
             'name' => fake()->name(),
-            'logo_path' => fake()->filePath(),
+            'logo_path' => $logoPath,
         ];
     }
 }
