@@ -3,7 +3,8 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\StoreUpdatePlayerRequest;
+use App\Http\Requests\StorePlayerRequest;
+use App\Http\Requests\UpdatePlayerRequest;
 use App\Http\Resources\PlayerResource;
 use App\Models\Player;
 use App\Models\Team;
@@ -44,11 +45,11 @@ class PlayerController extends Controller
     /**
      * Store a new player resource under the specified team in database.
      *
-     * @param StoreUpdatePlayerRequest $request
+     * @param StorePlayerRequest $request
      * @param Team $team
      * @return PlayerResource|JsonResponse
      */
-    public function store(StoreUpdatePlayerRequest $request, Team $team): PlayerResource|JsonResponse
+    public function store(StorePlayerRequest $request, Team $team): PlayerResource|JsonResponse
     {
         DB::beginTransaction();
         try {
@@ -88,12 +89,12 @@ class PlayerController extends Controller
     /**
      * Update the specified player resource under the specified team in database.
      *
-     * @param StoreUpdatePlayerRequest $request
+     * @param UpdatePlayerRequest $request
      * @param Team $team
      * @param Player $player
      * @return PlayerResource|JsonResponse
      */
-    public function update(StoreUpdatePlayerRequest $request, Team $team, Player $player): PlayerResource|JsonResponse
+    public function update(UpdatePlayerRequest $request, Team $team, Player $player): PlayerResource|JsonResponse
     {
         DB::beginTransaction();
         try {
