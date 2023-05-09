@@ -3,7 +3,7 @@
 An application to manage soccer teams and its players.
 
 ## Requirements
-- PHP v8.0 or Higher. (Developed using PHP v8.1)
+- PHP v8.1
 - MySQL (5.7 or 8)/Postgres (11 or Higher)/Sqlite
 
 ## Installation and Setup
@@ -40,6 +40,10 @@ https://api.postman.com/collections/13323251-cfb6f90e-20a8-4ed1-a776-c136934c3c1
 #### Login
 
 POST `api/v1/login`
+
+#### Logout
+
+DELETE `api/v1/logout`
 
 #### Get all Teams
 
