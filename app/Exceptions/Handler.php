@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 use Illuminate\Http\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Throwable;
 
 class Handler extends ExceptionHandler
@@ -41,7 +42,11 @@ class Handler extends ExceptionHandler
      */
     public function render($request, Throwable $e): JsonResponse|Response
     {
-        if ($e instanceof ModelNotFoundException) {
+        if ($e instanceof NotFoundHttpException) {
+            return new JsonResponse([
+                'message' => "Route not found."
+            ], 404);
+        } elseif ($e instanceof ModelNotFoundException) {
             return new JsonResponse([
                 'message' => "{$this->prettyModelNotFound($e)} not found."
             ], 404);

@@ -7,6 +7,9 @@ use App\Http\Requests\StoreTeamRequest;
 use App\Http\Requests\UpdateTeamRequest;
 use App\Http\Resources\TeamResource;
 use App\Models\Team;
+use App\Repositories\PlayerRepository;
+use App\Repositories\TeamRepository;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Facades\DB;
@@ -17,10 +20,22 @@ use Throwable;
 class TeamController extends Controller
 {
     /**
+     * @var TeamRepository
+     */
+    private TeamRepository $teamRepository;
+
+    /**
+     * @var PlayerRepository
+     */
+    private PlayerRepository $playerRepository;
+
+    /**
      * Instantiate a new controller instance.
      */
-    public function __construct()
+    public function __construct(TeamRepository $teamRepository, PlayerRepository $playerRepository)
     {
+        $this->teamRepository = $teamRepository;
+        $this->playerRepository = $playerRepository;
         $this->middleware([
             'auth:sanctum',
             'admin',
@@ -30,11 +45,16 @@ class TeamController extends Controller
     /**
      * Get all the team resources from the database.
      *
-     * @return AnonymousResourceCollection
+     * @return AnonymousResourceCollection|JsonResponse
      */
-    public function index(): AnonymousResourceCollection
+    public function index(): AnonymousResourceCollection|JsonResponse
     {
-        return TeamResource::collection(Team::all());
+        try {
+            return TeamResource::collection($this->teamRepository->all());
+        } catch (Throwable $throwable) {
+            logError($throwable, 'Error while getting all the team details.', 'TeamController@index');
+            return Response::json(['message' => 'Error while getting all the team details.'], 500);
+        }
     }
 
     /**
@@ -47,7 +67,7 @@ class TeamController extends Controller
     {
         try {
             $logoPath = storeImage($request->file('logo'), Team::LOGO_PATH);
-            $team = Team::create([
+            $team = $this->teamRepository->create([
                 'name' => $request->name,
                 'logo_path' => $logoPath,
             ]);
@@ -68,50 +88,59 @@ class TeamController extends Controller
     /**
      * Get the team resource from the database.
      *
-     * @param Team $team
-     * @return TeamResource
+     * @param $team
+     * @return TeamResource|JsonResponse
      */
-    public function show(Team $team): TeamResource
+    public function show($team): TeamResource|JsonResponse
     {
-        return new TeamResource($team);
+        try {
+            return new TeamResource($this->teamRepository->get($team));
+        } catch (ModelNotFoundException $exception) {
+            throw $exception;
+        } catch (Throwable $throwable) {
+            logError($throwable, 'Error while getting the specified team.', 'TeamController@show');
+            return Response::json(['message' => 'Error while getting the specified team.'], 500);
+        }
     }
-
 
     /**
      * Update the specified team resource in database.
      *
      * @param UpdateTeamRequest $request
-     * @param Team $team
+     * @param $team
      * @return JsonResponse|TeamResource
      */
-    public function update(UpdateTeamRequest $request, Team $team): JsonResponse|TeamResource
+    public function update(UpdateTeamRequest $request, $team): JsonResponse|TeamResource
     {
         DB::beginTransaction();
         try {
-            # Update logo if available in request.
-            $oldLogo = $team->logo_path;
+            $team = $this->teamRepository->get($team);
+            $oldLogoPath = $team->logo_path;
+            $data = ['name' => $request->name];
             if ($request->hasFile('logo')) {
-                $newLogo = storeImage($request->file('logo'), Team::LOGO_PATH);
-                $team->logo_path = $newLogo;
+                # Update logo if available in request.
+                $data['logo_path'] = storeImage($request->file('logo'), Team::LOGO_PATH);
             }
-            $team->name = $request->name;
-            $team->save();
+            $team = $this->teamRepository->update($team->id, $data);
 
             // Delete the old logo if logo is changed.
-            if ($oldLogo !== $team->logo_path) {
-                Storage::delete($oldLogo);
+            if ($oldLogoPath !== $team->logo_path) {
+                Storage::delete($oldLogoPath);
             }
             DB::commit();
 
             return new TeamResource($team);
+        } catch (ModelNotFoundException $exception) {
+            DB::rollBack();
+            throw $exception;
         } catch (Throwable $throwable) {
             DB::rollBack();
             // Delete the new logo if saved.
-            if (!empty($newLogo) && Storage::exists($newLogo)) {
-                Storage::delete($newLogo);
+            if (!empty($data) && !empty($data['logo_path'])) {
+                Storage::delete($data['logo_path']);
             }
             logError($throwable, 'Error while updating the team details.', 'TeamController@update', [
-                'team_id' => $team->id,
+                'team_id' => $team instanceof Team ? $team->id : $team,
                 'request' => $request->all(),
             ]);
             return Response::json(['message' => 'Error while updating the team details.'], 500);
@@ -121,30 +150,34 @@ class TeamController extends Controller
     /**
      * Remove the specified team resource from database.
      *
-     * @param Team $team
+     * @param $team
      * @return \Illuminate\Http\Response|JsonResponse
      */
-    public function destroy(Team $team): \Illuminate\Http\Response|JsonResponse
+    public function destroy($team): \Illuminate\Http\Response|JsonResponse
     {
         DB::beginTransaction();
         try {
+            $team = $this->teamRepository->get($team);
             # Prepare the image paths to delete.
-            $imagesToDelete = $team->players()->pluck('profile_image_path')->toArray();
+            $imagesToDelete = $this->playerRepository->getAllPlayerImages($team->id);
             $imagesToDelete[] = $team->logo_path;
 
             # Delete the players and then the team.
-            $team->players()->delete();
-            $team->delete();
+            $this->playerRepository->deleteTeamPlayers($team->id);
+            $this->teamRepository->delete($team->id);
 
             # Delete the images.
             Storage::delete($imagesToDelete);
             DB::commit();
 
             return Response::noContent();
+        } catch (ModelNotFoundException $exception) {
+            DB::rollBack();
+            throw $exception;
         } catch (Throwable $throwable) {
             DB::rollBack();
             logError($throwable, 'Error while deleting the team.', 'TeamController@delete', [
-                'team_id' => $team->id,
+                'team_id' => $team instanceof Team ? $team->id : $team,
             ]);
             return Response::json(['message' => 'Error while deleting the team.'], 500);
         }

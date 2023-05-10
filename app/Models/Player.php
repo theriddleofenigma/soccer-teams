@@ -18,7 +18,7 @@ class Player extends Model
      *
      * @var array<string>
      */
-    protected $fillable = ['first_name', 'last_name', 'profile_image_path'];
+    protected $fillable = ['team_id', 'first_name', 'last_name', 'profile_image_path'];
 
     /**
      * Player belongs to a team.

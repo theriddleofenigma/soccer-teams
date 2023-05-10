@@ -28,7 +28,7 @@ class UpdateTeamRequest extends FormRequest
                 'required',
                 'string',
                 'max:255',
-                Rule::unique('teams', 'name')->ignore($this->route('team')->id),
+                Rule::unique('teams', 'name')->ignore($this->route('team')),
             ],
             'logo' => 'sometimes|nullable|image|max:2048' // Max 2MB file size.
         ];

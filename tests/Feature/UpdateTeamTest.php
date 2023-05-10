@@ -127,7 +127,11 @@ class UpdateTeamTest extends TestCase
         // Admin user - Authenticated.
         Sanctum::actingAs(User::factory()->admin()->create());
 
-        $this->putJson($this->urlPrefix . '/teams/test')
+        $payload = [
+            'name' => fake()->name(),
+            'logo' => UploadedFile::fake()->image('my-team-logo.jpg'),
+        ];
+        $this->putJson($this->urlPrefix . '/teams/test', $payload)
             ->assertNotFound()
             ->assertJson([
                 'message' => 'Team not found.'
@@ -146,7 +150,11 @@ class UpdateTeamTest extends TestCase
 
         // Database has only 1 team with team id 1.
         // Submitting request with team id 2 should return 404.
-        $this->putJson($this->urlPrefix . '/teams/2')
+        $payload = [
+            'name' => fake()->name(),
+            'logo' => UploadedFile::fake()->image('my-team-logo.jpg'),
+        ];
+        $this->putJson($this->urlPrefix . '/teams/2', $payload)
             ->assertNotFound()
             ->assertJson([
                 'message' => 'Team not found.'

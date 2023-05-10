@@ -139,10 +139,15 @@ class UpdatePlayerTest extends TestCase
         // Admin user - Authenticated.
         Sanctum::actingAs(User::factory()->admin()->create());
 
-        $this->putJson($this->urlPrefix . '/teams/test')
+        $payload = [
+            'first_name' => fake()->name(),
+            'last_name' => fake()->name(),
+            'profile_image' => UploadedFile::fake()->image('my-profile-image.jpg'),
+        ];
+        $this->putJson($this->urlPrefix . '/teams/test/players' . $this->player->id,$payload)
             ->assertNotFound()
             ->assertJson([
-                'message' => 'Team not found.'
+                'message' => 'Route not found.'
             ]);
     }
 
@@ -156,9 +161,15 @@ class UpdatePlayerTest extends TestCase
 
         $this->assertEquals($this->team->id, 1);
 
+        $payload = [
+            'first_name' => fake()->name(),
+            'last_name' => fake()->name(),
+            'profile_image' => UploadedFile::fake()->image('my-profile-image.jpg'),
+        ];
+
         // Database has only 1 team with team id 1.
         // Submitting request with team id 2 should return 404.
-        $this->putJson($this->urlPrefix . '/teams/2')
+        $this->putJson($this->urlPrefix . '/teams/2/players/' . $this->player->id, $payload)
             ->assertNotFound()
             ->assertJson([
                 'message' => 'Team not found.'

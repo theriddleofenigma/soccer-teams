@@ -121,10 +121,15 @@ class StorePlayerTest extends TestCase
      */
     public function test_fails_for_string_value_as_team_id(): void
     {
-        // Non admin user - Authenticated.
-        Sanctum::actingAs(User::factory()->create());
+        // Admin user - Authenticated.
+        Sanctum::actingAs(User::factory()->admin()->create());
 
-        $this->postJson($this->urlPrefix . '/teams/test/players')
+        $payload = [
+            'first_name' => fake()->name(),
+            'last_name' => fake()->name(),
+            'profile_image' => UploadedFile::fake()->image('my-profile-image.jpg'),
+        ];
+        $this->postJson($this->urlPrefix . '/teams/test/players', $payload)
             ->assertNotFound()
             ->assertJson([
                 'message' => 'Team not found.'
@@ -139,14 +144,20 @@ class StorePlayerTest extends TestCase
      */
     public function test_fails_for_invalid_team_id(): void
     {
-        // Non admin user - Authenticated.
-        Sanctum::actingAs(User::factory()->create());
+        // Admin user - Authenticated.
+        Sanctum::actingAs(User::factory()->admin()->create());
 
         // Database has only 1 team with team id 1.
         $this->assertDatabaseHas('teams', ['id' => 1]);
 
+        $payload = [
+            'first_name' => fake()->name(),
+            'last_name' => fake()->name(),
+            'profile_image' => UploadedFile::fake()->image('my-profile-image.jpg'),
+        ];
+
         // Submitting request with team id 2 should return 404.
-        $this->postJson($this->urlPrefix . '/teams/2/players')
+        $this->postJson($this->urlPrefix . '/teams/2/players', $payload)
             ->assertNotFound()
             ->assertJson([
                 'message' => 'Team not found.'
