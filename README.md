@@ -3,6 +3,7 @@
 An application to manage soccer teams and its players.
 
 ## Requirements
+
 - Docker
 
 ## Installation and Setup
@@ -10,7 +11,7 @@ An application to manage soccer teams and its players.
 - Clone this repository to your local.
 - Run `docker-compose up --build` on the project root directory to install the composer packages.
 - Ssh into the **soccer-teams-app** container and run `php artisan migrate` to migrate the database tables.
-- To create admin user, run `php artisan db:seed`.
+- Run `php artisan db:seed` to seed the admin user. Email: **test@example.com** Password: **password** (For safety, this command will seed the default admin user only in environment other than production.) 
 - Now visit `http://localhost:8080` in the browser and see {"message":"success"} json to confirm server started properly.
 - To add a new user, run `php artisan user:add`. And you can set the user as admin by confirming on the prompt asked on executing the command.
 - Run `php artisan route:list` to see all the available routes. Else refer to [API Route List](#available-route-list) in the **README.md** file.
