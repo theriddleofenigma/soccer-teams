@@ -71,6 +71,7 @@ class UpdatePlayerTest extends TestCase
             ->assertJson([
                 'data' => [
                     'first_name' => $payload['first_name'],
+                    'last_name' => $payload['last_name'],
                 ],
             ])->json('data.profile_image_url');
 
@@ -82,8 +83,9 @@ class UpdatePlayerTest extends TestCase
 
         // Database should have the latest updated player data.
         $this->assertDatabaseHas('players', [
-            'id' => $this->team->id,
+            'id' => $this->player->id,
             'first_name' => $payload['first_name'],
+            'last_name' => $payload['last_name'],
             'profile_image_path' => Str::after($profileImageUrl, 'storage/'),
         ]);
     }
@@ -159,17 +161,17 @@ class UpdatePlayerTest extends TestCase
         // Admin user - Authenticated.
         Sanctum::actingAs(User::factory()->admin()->create());
 
-        $this->assertEquals($this->team->id, 1);
-
         $payload = [
             'first_name' => fake()->name(),
             'last_name' => fake()->name(),
             'profile_image' => UploadedFile::fake()->image('my-profile-image.jpg'),
         ];
 
-        // Database has only 1 team with team id 1.
-        // Submitting request with team id 2 should return 404.
-        $this->putJson($this->urlPrefix . '/teams/2/players/' . $this->player->id, $payload)
+        $id = fake()->numberBetween(11111, 99999);
+        $this->assertDatabaseMissing('teams', ['id' => $id]);
+
+        // Submitting request with team id that doesn't exist, should return 404.
+        $this->putJson($this->urlPrefix . '/teams/' . $id . '/players/' . $this->player->id, $payload)
             ->assertNotFound()
             ->assertJson([
                 'message' => 'Team not found.'
@@ -397,6 +399,7 @@ class UpdatePlayerTest extends TestCase
             ->assertJson([
                 'data' => [
                     'first_name' => $payload['first_name'],
+                    'last_name' => $payload['last_name'],
                 ],
             ]);
 
@@ -405,8 +408,9 @@ class UpdatePlayerTest extends TestCase
 
         // Database should have the latest updated player data.
         $this->assertDatabaseHas('players', [
-            'id' => $this->team->id,
+            'id' => $this->player->id,
             'first_name' => $payload['first_name'],
+            'last_name' => $payload['last_name'],
             'profile_image_path' => $this->player->profile_image_path,
         ]);
     }
@@ -477,25 +481,27 @@ class UpdatePlayerTest extends TestCase
             'last_name' => fake()->name(),
             'profile_image' => UploadedFile::fake()->image('my-profile-image.jpg')->size(2048),
         ];
-        $profileImageUrl = $this->putJson($this->urlPrefix . '/teams/' . $this->team->id . '/players/' . $this->player->id, $payload)
+        $response = $this->putJson($this->urlPrefix . '/teams/' . $this->team->id . '/players/' . $this->player->id, $payload)
             ->assertOk()
             ->assertJson([
                 'data' => [
                     'first_name' => $payload['first_name'],
+                    'last_name' => $payload['last_name'],
                 ],
-            ])->json('data.profile_image_url');
+            ])->json('data');
 
         // Assert player profile image exists in storage.
-        Storage::assertExists(Str::after($profileImageUrl, 'storage/'));
+        Storage::assertExists(Str::after($response['profile_image_url'], 'storage/'));
 
         // Assert player profile image has been deleted from storage as new image has been uploaded.
         Storage::assertMissing($this->player->profile_image_path);
 
         // Database should have the latest updated player data.
         $this->assertDatabaseHas('players', [
-            'id' => $this->team->id,
+            'id' => $this->player->id,
             'first_name' => $payload['first_name'],
-            'profile_image_path' => Str::after($profileImageUrl, 'storage/'),
+            'last_name' => $payload['last_name'],
+            'profile_image_path' => Str::after($response['profile_image_url'], 'storage/'),
         ]);
     }
 }

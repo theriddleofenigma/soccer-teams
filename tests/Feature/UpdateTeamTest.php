@@ -56,16 +56,16 @@ class UpdateTeamTest extends TestCase
             'name' => fake()->name(),
             'logo' => UploadedFile::fake()->image('my-team-logo.jpg'),
         ];
-        $logoUrl = $this->putJson($this->urlPrefix . '/teams/' . $this->team->id, $payload)
+        $response = $this->putJson($this->urlPrefix . '/teams/' . $this->team->id, $payload)
             ->assertOk()
             ->assertJson([
                 'data' => [
                     'name' => $payload['name'],
                 ],
-            ])->json('data.logo_url');
+            ])->json('data');
 
         // Assert team logo exists in storage.
-        Storage::assertExists(Str::after($logoUrl, 'storage/'));
+        Storage::assertExists(Str::after($response['logo_url'], 'storage/'));
 
         // Assert team logo image has been deleted from storage as new image has been uploaded.
         Storage::assertMissing($this->team->logo_path);
@@ -74,7 +74,7 @@ class UpdateTeamTest extends TestCase
         $this->assertDatabaseHas('teams', [
             'id' => $this->team->id,
             'name' => $payload['name'],
-            'logo_path' => Str::after($logoUrl, 'storage/'),
+            'logo_path' => Str::after($response['logo_url'], 'storage/'),
         ]);
     }
 
@@ -146,15 +146,16 @@ class UpdateTeamTest extends TestCase
         // Admin user - Authenticated.
         Sanctum::actingAs(User::factory()->admin()->create());
 
-        $this->assertEquals($this->team->id, 1);
-
-        // Database has only 1 team with team id 1.
-        // Submitting request with team id 2 should return 404.
         $payload = [
             'name' => fake()->name(),
             'logo' => UploadedFile::fake()->image('my-team-logo.jpg'),
         ];
-        $this->putJson($this->urlPrefix . '/teams/2', $payload)
+
+        $id = fake()->numberBetween(11111, 99999);
+        $this->assertDatabaseMissing('teams', ['id' => $id]);
+
+        // Submitting request with team id that doesn't exist, should return 404.
+        $this->putJson($this->urlPrefix . '/teams/' . $id, $payload)
             ->assertNotFound()
             ->assertJson([
                 'message' => 'Team not found.'

@@ -99,13 +99,11 @@ class DeletePlayerTest extends TestCase
         // Admin user - Authenticated.
         Sanctum::actingAs(User::factory()->admin()->create());
 
-        // Database has only 1 team with team id 1.
-        $this->assertDatabaseCount('teams', 1);
-        $this->assertDatabaseHas('teams', ['id' => 1]);
-        $this->assertDatabaseMissing('teams', ['id' => 2]);
+        $id = fake()->numberBetween(11111, 99999);
+        $this->assertDatabaseMissing('teams', ['id' => $id]);
 
-        // Submitting request with team id 2 should return 404.
-        $this->deleteJson($this->urlPrefix . '/teams/2/players/' . $this->player->id)
+        // Submitting request with team id that doesn't exist, should return 404.
+        $this->deleteJson($this->urlPrefix . '/teams/' . $id . '/players/' . $this->player->id)
             ->assertNotFound()
             ->assertJson([
                 'message' => 'Team not found.'
@@ -135,11 +133,11 @@ class DeletePlayerTest extends TestCase
      */
     public function test_fails_for_invalid_player_id(): void
     {
-        $this->assertEquals($this->player->id, 1);
+        $id = fake()->numberBetween(11111, 99999);
+        $this->assertDatabaseMissing('teams', ['id' => $id]);
 
-        // Database has only 1 player with player id 1.
-        // Submitting request with player id 2 should return 404.
-        $this->deleteJson($this->urlPrefix . '/teams/' . $this->team->id . '/players/2')
+        // Submitting request with team id that doesn't exist, should return 404.
+        $this->deleteJson($this->urlPrefix . '/teams/' . $this->team->id . '/players/' . $id)
             ->assertNotFound()
             ->assertJson([
                 'message' => 'Player not found.'

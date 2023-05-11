@@ -97,17 +97,14 @@ class GetPlayersTest extends TestCase
      */
     public function test_fails_for_invalid_team_id(): void
     {
-        // Database has only 1 team with team id 1.
-        $this->assertDatabaseHas('teams', ['id' => 1]);
+        $id = fake()->numberBetween(11111, 99999);
+        $this->assertDatabaseMissing('teams', ['id' => $id]);
 
-        // Submitting request with team id 2 should return 404.
-        $this->getJson($this->urlPrefix . '/teams/2/players')
+        // Submitting request with team id that doesn't exist, should return 404.
+        $this->getJson($this->urlPrefix . '/teams/' . $id . '/players')
             ->assertNotFound()
             ->assertJson([
                 'message' => 'Team not found.'
             ]);
-
-        // Database don't have any entry for id:2 in the teams table.
-        $this->assertDatabaseMissing('teams', ['id' => 2]);
     }
 }

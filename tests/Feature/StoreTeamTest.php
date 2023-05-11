@@ -34,21 +34,21 @@ class StoreTeamTest extends TestCase
             'name' => fake()->name(),
             'logo' => UploadedFile::fake()->image('my-team-logo.jpg'),
         ];
-        $logoUrl = $this->postJson($this->urlPrefix . '/teams', $payload)
+        $response = $this->postJson($this->urlPrefix . '/teams', $payload)
             ->assertCreated()
             ->assertJson([
                 'data' => [
                     'name' => $payload['name'],
                 ],
-            ])->json('data.logo_url');
+            ])->json('data');
 
         // Assert team logo exists in storage.
-        Storage::assertExists(Str::after($logoUrl, 'storage/'));
+        Storage::assertExists(Str::after($response['logo_url'], 'storage/'));
 
         // Database should have 1 entry in the teams table.
         // The corresponding team id should match the newly created one.
         $this->assertDatabaseCount('teams', 1);
-        $this->assertEquals(1, Team::first()->id);
+        $this->assertEquals($response['id'], Team::first()->id);
     }
 
     /**
@@ -270,20 +270,20 @@ class StoreTeamTest extends TestCase
             'name' => fake()->name(),
             'logo' => UploadedFile::fake()->image('my-team-logo.jpg')->size(2048),
         ];
-        $logoUrl = $this->postJson($this->urlPrefix . '/teams', $payload)
+        $response = $this->postJson($this->urlPrefix . '/teams', $payload)
             ->assertCreated()
             ->assertJson([
                 'data' => [
                     'name' => $payload['name'],
                 ],
-            ])->json('data.logo_url');
+            ])->json('data');
 
         // Assert team logo exists in storage.
-        Storage::assertExists(Str::after($logoUrl, 'storage/'));
+        Storage::assertExists(Str::after($response['logo_url'], 'storage/'));
 
         // Database should have 1 entry in the teams table.
         // The corresponding team id should match the newly created one.
         $this->assertDatabaseCount('teams', 1);
-        $this->assertEquals(1, Team::first()->id);
+        $this->assertEquals($response['id'], Team::first()->id);
     }
 }

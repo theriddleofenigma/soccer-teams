@@ -58,18 +58,14 @@ class GetTeamTest extends TestCase
      */
     public function test_fails_for_invalid_team_id(): void
     {
-        $team = Team::factory()->create();
-        $this->assertEquals($team->id, 1);
+        $id = fake()->numberBetween(11111, 99999);
+        $this->assertDatabaseMissing('teams', ['id' => $id]);
 
-        // Database has only 1 team with team id 1.
-        // Submitting request with team id 2 should return 404.
-        $this->getJson($this->urlPrefix . '/teams/2')
+        // Submitting request with team id that doesn't exist, should return 404.
+        $this->getJson($this->urlPrefix . '/teams/' . $id)
             ->assertNotFound()
             ->assertJson([
                 'message' => 'Team not found.'
             ]);
-
-        // Database should have 1 entry in the teams table.
-        $this->assertDatabaseCount('teams', 1);
     }
 }

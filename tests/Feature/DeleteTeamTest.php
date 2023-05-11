@@ -124,19 +124,14 @@ class DeleteTeamTest extends TestCase
         // Admin user - Authenticated.
         Sanctum::actingAs(User::factory()->admin()->create());
 
-        // Database has only 1 team with team id 1.
-        $this->assertDatabaseCount('teams', 1);
-        $this->assertDatabaseHas('teams', ['id' => 1]);
-        $this->assertDatabaseMissing('teams', ['id' => 2]);
+        $id = fake()->numberBetween(11111, 99999);
+        $this->assertDatabaseMissing('teams', ['id' => $id]);
 
-        // Submitting request with team id 2 should return 404.
-        $this->deleteJson($this->urlPrefix . '/teams/2')
+        // Submitting request with team id that doesn't exist, should return 404.
+        $this->deleteJson($this->urlPrefix . '/teams/' . $id)
             ->assertNotFound()
             ->assertJson([
                 'message' => 'Team not found.'
             ]);
-
-        // Database should have 1 entry in the teams table as request failed and no delete happened.
-        $this->assertDatabaseCount('teams', 1);
     }
 }

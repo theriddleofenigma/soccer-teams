@@ -55,22 +55,22 @@ class StorePlayerTest extends TestCase
             'last_name' => fake()->name(),
             'profile_image' => UploadedFile::fake()->image('my-profile.jpg'),
         ];
-        $profileImageUrl = $this->postJson($this->urlPrefix . '/teams/' . $this->team->id . '/players', $payload)
+        $response = $this->postJson($this->urlPrefix . '/teams/' . $this->team->id . '/players', $payload)
             ->assertCreated()
             ->assertJson([
                 'data' => [
                     'first_name' => $payload['first_name'],
                     'last_name' => $payload['last_name'],
                 ],
-            ])->json('data.profile_image_url');
+            ])->json('data');
 
         // Assert player profile image exists in storage.
-        Storage::assertExists(Str::after($profileImageUrl, 'storage/'));
+        Storage::assertExists(Str::after($response['profile_image_url'], 'storage/'));
 
         // Database should have 1 entry in the players table.
         // The corresponding player id should match the newly created one.
         $this->assertDatabaseCount('players', 1);
-        $this->assertEquals(1, Player::first()->id);
+        $this->assertEquals($response['id'], Player::first()->id);
     }
 
     /**
@@ -147,24 +147,21 @@ class StorePlayerTest extends TestCase
         // Admin user - Authenticated.
         Sanctum::actingAs(User::factory()->admin()->create());
 
-        // Database has only 1 team with team id 1.
-        $this->assertDatabaseHas('teams', ['id' => 1]);
-
         $payload = [
             'first_name' => fake()->name(),
             'last_name' => fake()->name(),
             'profile_image' => UploadedFile::fake()->image('my-profile-image.jpg'),
         ];
 
-        // Submitting request with team id 2 should return 404.
-        $this->postJson($this->urlPrefix . '/teams/2/players', $payload)
+        $id = fake()->numberBetween(11111, 99999);
+        $this->assertDatabaseMissing('teams', ['id' => $id]);
+
+        // Submitting request with team id that doesn't exist, should return 404.
+        $this->postJson($this->urlPrefix . '/teams/' . $id . '/players', $payload)
             ->assertNotFound()
             ->assertJson([
                 'message' => 'Team not found.'
             ]);
-
-        // Database don't have any entry for id:2 in the teams table.
-        $this->assertDatabaseMissing('teams', ['id' => 2]);
     }
 
     /**
@@ -452,21 +449,21 @@ class StorePlayerTest extends TestCase
             'last_name' => fake()->name(),
             'profile_image' => UploadedFile::fake()->image('my-profile.jpg')->size(2048),
         ];
-        $profileImageUrl = $this->postJson($this->urlPrefix . '/teams/' . $this->team->id . '/players', $payload)
+        $response = $this->postJson($this->urlPrefix . '/teams/' . $this->team->id . '/players', $payload)
             ->assertCreated()
             ->assertJson([
                 'data' => [
                     'first_name' => $payload['first_name'],
                     'last_name' => $payload['last_name'],
                 ],
-            ])->json('data.profile_image_url');
+            ])->json('data');
 
         // Assert player profile image exists in storage.
-        Storage::assertExists(Str::after($profileImageUrl, 'storage/'));
+        Storage::assertExists(Str::after($response['profile_image_url'], 'storage/'));
 
         // Database should have 1 entry in the players table.
         // The corresponding player id should match the newly created one.
         $this->assertDatabaseCount('players', 1);
-        $this->assertEquals(1, Player::first()->id);
+        $this->assertEquals($response['id'], Player::first()->id);
     }
 }

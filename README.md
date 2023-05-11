@@ -3,23 +3,17 @@
 An application to manage soccer teams and its players.
 
 ## Requirements
-- PHP v8.1
-- MySQL (5.7 or 8)/Postgres (11 or Higher)/Sqlite
+- Docker
 
 ## Installation and Setup
 
 - Clone this repository to your local.
-- Run `composer install` on the root directory to install the composer packages.
-- Copy and paste the **.env.example** file into **.env** in the root directory.
-- Run `php artisan key:generate` to set the application key in the **.env** file.
-- Set all the necessary environment variables in the **.env** file.
-- Run `php artisan migrate` to create database (if required) and to execute the migration files.
-- To create admin user, either run `php artisan db:seed` or `php artisan user:add`.
-- For `php artisan db:seed`, open `database/seeders/DatabaseSeeder.php` and uncomment the user creation script then run `php artisan db:seed`.
-- On running `php artisan user:add`, you can set the user as admin by confirming on the prompt asked on executing the command.
+- Run `docker-compose up --build` on the project root directory to install the composer packages.
+- Ssh into the **soccer-teams-app** container and run `php artisan migrate` to migrate the database tables.
+- To create admin user, run `php artisan db:seed`.
+- Now visit `http://localhost:8080` in the browser and see {"message":"success"} json to confirm server started properly.
+- To add a new user, run `php artisan user:add`. And you can set the user as admin by confirming on the prompt asked on executing the command.
 - Run `php artisan route:list` to see all the available routes. Else refer to [API Route List](#available-route-list) in the **README.md** file.
-- Run `php artisan serve` to start the server.
-- Now visit `http://127.0.0.1:8000` in the browser and see {"message":"success"} json to confirm server started properly.
 - For postman collection please use the following link to import. 
 ```
 https://api.postman.com/collections/13323251-cfb6f90e-20a8-4ed1-a776-c136934c3c10?access_key=PMAT-01GZVA67KPQPDZS67A631NAK2J
