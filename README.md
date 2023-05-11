@@ -10,7 +10,8 @@ An application to manage soccer teams and its players.
 
 - Clone this repository to your local.
 - Run `docker-compose up --build` on the project root directory to install the composer packages.
-- Ssh into the **soccer-teams-app** container and run `php artisan migrate` to migrate the database tables.
+- SSH into the **soccer-teams-app** docker container and you can find the project files under the /var/www/html folder. 
+- Now run `php artisan migrate` to migrate the database tables.
 - Run `php artisan db:seed` to seed the admin user. Email: **test@example.com** Password: **password** (For safety, this command will seed the default admin user only in environment other than production.) 
 - Now visit `http://localhost:8080` in the browser and see {"message":"success"} json to confirm server started properly.
 - To add a new user, run `php artisan user:add`. And you can set the user as admin by confirming on the prompt asked on executing the command.
@@ -26,8 +27,7 @@ https://api.postman.com/collections/13323251-cfb6f90e-20a8-4ed1-a776-c136934c3c1
 
 ## Testing
 
-- Once cloned and setup is done.
-- Open terminal on the project root directory in your local and run `php artisan test` command.
+- Once started your docker containers, SSH into your **soccer-teams-app** docker container and under the /var/www/html folder run `php artisan test`.
 - Once executed it will list all the test class name along with the executed test case and status in detail.
 
 ## Available API Route list
